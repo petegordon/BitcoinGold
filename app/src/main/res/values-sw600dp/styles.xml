@@ -1,0 +1,7 @@
+<resources>
+
+    <style name="BitcoinGoldListStyle">
+        <item name="android:choiceMode">singleChoice</item>
+    </style>
+
+</resources>

@@ -1,0 +1,48 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="@style/Theme.AppCompat.Light.DarkActionBar">
+        <item name="actionBarStyle">@style/ActionBar.Solid.BitcoinGold</item>
+    </style>
+
+    <style name="BitcoinGoldTheme" parent="AppTheme">
+        <item name="actionBarStyle">@style/ActionBar.Solid.BitcoinGold.NoTitle</item>
+    </style>
+
+    <style name="ActionBar.Solid.BitcoinGold" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
+        <item name="background">@color/bitcoingold_orange</item>
+    </style>
+
+    <style name="ActionBar.Solid.BitcoinGold.NoTitle" parent="@style/ActionBar.Solid.BitcoinGold">
+        <item name="displayOptions">useLogo|showHome</item>
+        <item name="logo">@drawable/ic_launcher</item>
+    </style>
+
+    <style name="BitcoinGoldListStyle">
+        <!-- Here it's a stub.  In screens of sufficient width, this style includes modifications
+        for two-pane layout -->
+    </style>
+
+    <style name="BitcoinGoldLargeRatioTextStyle">
+        <item name="android:paddingLeft">4px</item>
+        <item name="android:paddingBottom">4px</item>
+        <item name="android:textColor">#ffffffff</item>
+        <item name="android:textSize">64sp</item>
+        <item name="android:shadowColor">#000000</item>
+        <item name="android:shadowDx">1</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">1</item>
+    </style>
+
+    <style name="BitcoinGoldLargePriceTextStyle">
+        <item name="android:paddingLeft">4px</item>
+        <item name="android:paddingBottom">4px</item>
+        <item name="android:textColor">@color/bitcoingold_orange</item>
+        <item name="android:textSize">32sp</item>
+        <item name="android:shadowColor">#000000</item>
+        <item name="android:shadowDx">1</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">1</item>
+    </style>
+
+</resources>

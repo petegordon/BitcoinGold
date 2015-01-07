@@ -1,0 +1,25 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="@style/Theme.AppCompat.Light.DarkActionBar">
+        <item name="android:actionBarStyle">@style/ActionBar.Solid.BitcoinGold</item>
+    </style>
+
+    <!-- Main activity theme. -->
+    <style name="BitcoinGoldTheme" parent="AppTheme">
+        <item name="android:actionBarStyle">@style/ActionBar.Solid.BitcoinGold.NoTitle</item>
+    </style>
+
+    <!-- ActionBar styles -->
+    <style name="ActionBar.Solid.BitcoinGold"
+        parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
+        <item name="android:background">@color/bitcoingold_gold</item>
+    </style>
+
+    <!-- main activity action bar styles -->
+    <style name="ActionBar.Solid.Sunshine.NoTitle" parent="@style/ActionBar.Solid.BitcoinGold">
+        <item name="android:displayOptions">useLogo|showHome</item>
+        <item name="android:logo">@drawable/ic_launcher</item>
+    </style>
+
+</resources>
