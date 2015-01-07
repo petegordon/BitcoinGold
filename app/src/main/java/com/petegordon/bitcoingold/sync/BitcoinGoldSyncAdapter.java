@@ -52,7 +52,7 @@ public class BitcoinGoldSyncAdapter extends AbstractThreadedSyncAdapter {
 
     //&auth_token=gJ4wHyGqYVtKhvzvJcP9
     public final static String QUERY_PARAM_AUTH_TOKEN = "auth_token";
-    public final static String AUTH_TOKEN = "gJ4wHyGqYVtKhvzvJcP9";
+    public final static String AUTH_TOKEN = "[YOUR quandl.com AUTH TOKEN HERE]";
 
     public static final String LOG_TAG = BitcoinGoldSyncAdapter.class.getSimpleName();
     // Interval at which to sync with the bitcoin and gold prices, in milliseconds.
