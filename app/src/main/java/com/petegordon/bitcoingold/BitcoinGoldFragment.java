@@ -22,6 +22,7 @@ import android.widget.ListView;
 import com.petegordon.bitcoingold.data.BitcoinGoldContract;
 import com.petegordon.bitcoingold.data.BitcoinGoldProvider;
 import com.petegordon.bitcoingold.sync.BitcoinGoldSyncAdapter;
+
 import java.util.Calendar;
 import java.util.Date;
 
@@ -136,11 +137,8 @@ public class BitcoinGoldFragment extends Fragment implements LoaderManager.Loade
      * Query the database for the latest Bitcoin to Gold Price for the MainActivity.BitcoinGoldFragment ShareProvider
      */
     private void createShareBitcoinGold(){
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date());
-        calendar.roll(Calendar.DAY_OF_YEAR, -3);
-        Date startDate = calendar.getTime();
-        String startDateString = BitcoinGoldContract.getDbDateString(startDate);
+
+        String startDateString = BitcoinGoldContract.getDbDateString(new Date(new Date().getTime() - (3) * 86400000 ));
 
         Cursor todayCursor = getActivity().getContentResolver().query(
                 BitcoinGoldContract.BitcoinGoldEntry.buildBitcoinGoldWithStartDate(startDateString),
@@ -180,12 +178,7 @@ public class BitcoinGoldFragment extends Fragment implements LoaderManager.Loade
 
         // To only show current and future dates, get the String representation for today,
         // and filter the query to return bitcoin pricing the past 14 days.
-
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date());
-        calendar.roll(Calendar.DAY_OF_YEAR, -(BitcoinGoldContract.NUMBER_OF_DAYS));
-        Date startDate = calendar.getTime();
-        String startDateString = BitcoinGoldContract.getDbDateString(startDate);
+        String startDateString = BitcoinGoldContract.getDbDateString(new Date(new Date().getTime() - (BitcoinGoldContract.NUMBER_OF_DAYS) * 86400000 ));
 
         // Sort order:  Ascending, by date.
         String sortOrder = BitcoinGoldContract.BitcoinGoldEntry.COLUMN_DATETEXT + " DESC";

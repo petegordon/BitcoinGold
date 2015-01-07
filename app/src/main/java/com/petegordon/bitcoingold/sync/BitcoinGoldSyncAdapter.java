@@ -41,7 +41,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Vector;
 
@@ -52,7 +51,7 @@ public class BitcoinGoldSyncAdapter extends AbstractThreadedSyncAdapter {
 
     //&auth_token=gJ4wHyGqYVtKhvzvJcP9
     public final static String QUERY_PARAM_AUTH_TOKEN = "auth_token";
-    public final static String AUTH_TOKEN = "[YOUR quandl.com AUTH TOKEN HERE]";
+    public final static String AUTH_TOKEN = "[YOUR AUTH TOKEN]";
 
     public static final String LOG_TAG = BitcoinGoldSyncAdapter.class.getSimpleName();
     // Interval at which to sync with the bitcoin and gold prices, in milliseconds.
@@ -138,7 +137,13 @@ public class BitcoinGoldSyncAdapter extends AbstractThreadedSyncAdapter {
 
                     if(indexGoldYesterday < goldDayPriceData.length()) {
                         double goldYesterdayAMPrice = goldDayPriceData.getJSONArray(indexGoldYesterday).getDouble(GOLD_AM_PRICE);
-                        double goldYesterdayPMPrice = goldDayPriceData.getJSONArray(indexGoldYesterday).getDouble(GOLD_PM_PRICE);
+                        double goldYesterdayPMPrice;
+                        if(goldDayPriceData.getJSONArray(indexGoldYesterday).isNull(GOLD_PM_PRICE)){
+                            goldYesterdayPMPrice = goldYesterdayAMPrice;
+                        } else {
+                            goldYesterdayPMPrice = goldDayPriceData.getJSONArray(indexGoldYesterday).getDouble(GOLD_PM_PRICE);
+                        }
+
                         double goldYesterdayAveragePrice = ((goldYesterdayAMPrice + goldYesterdayPMPrice) / 2);
                         goldPercentChange = (goldTodayAveragePrice - goldYesterdayAveragePrice) / goldYesterdayAveragePrice;
                     }
@@ -321,13 +326,8 @@ public class BitcoinGoldSyncAdapter extends AbstractThreadedSyncAdapter {
                     "https://www.quandl.com/api/v1/datasets/LBMA/GOLD.json?";
             final String QUERY_PARAM_STARTDATE = "trim_start";  //date format is YYYY-MM-dd
 
-            //Default is 10 days worth of data
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(new Date());
-            calendar.roll(Calendar.DAY_OF_YEAR, -(BitcoinGoldContract.NUMBER_OF_DAYS+1));
-            Date startDate = calendar.getTime();
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            String strStartDate = dateFormat.format(startDate);
+            String strStartDate = dateFormat.format(new Date(new Date().getTime() - (BitcoinGoldContract.NUMBER_OF_DAYS+1) * 86400000 ) );
 
             Uri builtUri = Uri.parse(BASE_URL).buildUpon()
                     .appendQueryParameter(QUERY_PARAM_STARTDATE, strStartDate)
@@ -335,7 +335,7 @@ public class BitcoinGoldSyncAdapter extends AbstractThreadedSyncAdapter {
                     .build();
 
             URL url = new URL(builtUri.toString());
-
+            Log.d(LOG_TAG, url.toString());
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
             urlConnection.connect();
@@ -402,13 +402,9 @@ public class BitcoinGoldSyncAdapter extends AbstractThreadedSyncAdapter {
                     "http://www.quandl.com/api/v1/datasets/BITCOIN/BITSTAMPUSD?";
             final String QUERY_PARAM_STARTDATE = "trim_start";  //date format is YYYY-MM-dd
 
-            //Default is 10 days worth of data
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(new Date());
-            calendar.roll(Calendar.DAY_OF_YEAR, -(BitcoinGoldContract.NUMBER_OF_DAYS+1));
-            Date startDate = calendar.getTime();
+
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            String strStartDate = dateFormat.format(startDate);
+            String strStartDate = dateFormat.format(new Date(new Date().getTime() - (BitcoinGoldContract.NUMBER_OF_DAYS+1) * 86400000 ));
 
             Uri builtUri = Uri.parse(BASE_URL).buildUpon()
                     .appendQueryParameter(QUERY_PARAM_STARTDATE, strStartDate)
@@ -416,6 +412,7 @@ public class BitcoinGoldSyncAdapter extends AbstractThreadedSyncAdapter {
                     .build();
 
             URL url = new URL(builtUri.toString());
+            Log.d(LOG_TAG, url.toString());
 
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
@@ -482,11 +479,8 @@ public class BitcoinGoldSyncAdapter extends AbstractThreadedSyncAdapter {
             if (System.currentTimeMillis() - lastSync >= DAY_IN_MILLIS) {
                 // Last sync was more than 1 day ago, let's send a notification with the bitcoin and gold price if we have a current record.
 
-                Calendar calendar = Calendar.getInstance();
-                calendar.setTime(new Date());
-                calendar.roll(Calendar.DAY_OF_YEAR, -3);
-                Date startDate = calendar.getTime();
-                String startDateString = BitcoinGoldContract.getDbDateString(startDate);
+                //check the past 3 days.
+                String startDateString = BitcoinGoldContract.getDbDateString(new Date(new Date().getTime() - (3) * 86400000 ));
 
                 Cursor todayCursor = getContext().getContentResolver().query(
                         BitcoinGoldContract.BitcoinGoldEntry.buildBitcoinGoldWithStartDate(startDateString),

@@ -45,10 +45,7 @@ public class Utility {
                     today,
                     getFormattedMonthDay(context, dateStr)));
         } else {
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(todayDate);
-            cal.add(Calendar.DATE, -7);
-            String weekFutureString = BitcoinGoldContract.getDbDateString(cal.getTime());
+            String weekFutureString = BitcoinGoldContract.getDbDateString(new Date(new Date().getTime() - (7) * 86400000 ));
 
             if (dateStr.compareTo(weekFutureString) > 0) {
                 //If the day is within the past week just return the day of the week
