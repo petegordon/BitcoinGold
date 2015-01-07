@@ -51,7 +51,7 @@ public class BitcoinGoldSyncAdapter extends AbstractThreadedSyncAdapter {
 
     //&auth_token=gJ4wHyGqYVtKhvzvJcP9
     public final static String QUERY_PARAM_AUTH_TOKEN = "auth_token";
-    public final static String AUTH_TOKEN = "[YOUR AUTH TOKEN]";
+    public final static String AUTH_TOKEN = "gJ4wHyGqYVtKhvzvJcP9";
 
     public static final String LOG_TAG = BitcoinGoldSyncAdapter.class.getSimpleName();
     // Interval at which to sync with the bitcoin and gold prices, in milliseconds.
@@ -61,6 +61,7 @@ public class BitcoinGoldSyncAdapter extends AbstractThreadedSyncAdapter {
     private static final long DAY_IN_MILLIS = 1000 * 60 * 60 * 24;
 
     private static final int BITCOINGOLD_NOTIFICATION_ID = 3004;
+    private static final long EXTRA_DAYS = 4;
 
     public BitcoinGoldSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
@@ -327,7 +328,7 @@ public class BitcoinGoldSyncAdapter extends AbstractThreadedSyncAdapter {
             final String QUERY_PARAM_STARTDATE = "trim_start";  //date format is YYYY-MM-dd
 
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            String strStartDate = dateFormat.format(new Date(new Date().getTime() - (BitcoinGoldContract.NUMBER_OF_DAYS+1) * 86400000 ) );
+            String strStartDate = dateFormat.format(new Date(new Date().getTime() - (BitcoinGoldContract.NUMBER_OF_DAYS+EXTRA_DAYS) * 86400000 ) );
 
             Uri builtUri = Uri.parse(BASE_URL).buildUpon()
                     .appendQueryParameter(QUERY_PARAM_STARTDATE, strStartDate)
@@ -404,7 +405,7 @@ public class BitcoinGoldSyncAdapter extends AbstractThreadedSyncAdapter {
 
 
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            String strStartDate = dateFormat.format(new Date(new Date().getTime() - (BitcoinGoldContract.NUMBER_OF_DAYS+1) * 86400000 ));
+            String strStartDate = dateFormat.format(new Date(new Date().getTime() - (BitcoinGoldContract.NUMBER_OF_DAYS+EXTRA_DAYS) * 86400000 ));
 
             Uri builtUri = Uri.parse(BASE_URL).buildUpon()
                     .appendQueryParameter(QUERY_PARAM_STARTDATE, strStartDate)
