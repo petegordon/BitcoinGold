@@ -154,7 +154,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                 }
 
                 if(bitcoinGoldRatioView != null && !cursor.isNull(BitcoinGoldContract.BitcoinGoldEntry.COL_PRICE_RATIO)){
-                    priceRatio = cursor.getString(BitcoinGoldContract.BitcoinGoldEntry.COL_PRICE_RATIO);
+                    priceRatio = Utility.getFormattedCurrencyValue(cursor.getDouble(BitcoinGoldContract.BitcoinGoldEntry.COL_PRICE_RATIO));
                     bitcoinGoldRatioView.setText(priceRatio);
                 }
 

@@ -20,7 +20,7 @@
             android:fontFamily="sans-serif-condensed"
             android:textSize="30sp"
             android:padding="8dp"
-            android:text="9.99" />
+             />
     </LinearLayout>
 
     <LinearLayout
@@ -57,7 +57,6 @@
             android:layout_gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/uparrow"
             android:background="@color/bitcoingold_orange"
             android:paddingTop="6dp"/>
         <ImageView
@@ -71,7 +70,6 @@
             android:layout_gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/downarrow"
             android:background="@color/bitcoingold_gold"
             android:paddingTop="6dp"/>/>
 
@@ -90,7 +88,6 @@
             android:layout_gravity="center"
             android:fontFamily="sans-serif-condensed"
             android:textAppearance="?android:textAppearanceLarge"
-            android:text="$9999.99"
             />
         <TextView
             android:id="@+id/list_item_bitcoin_price_textview"

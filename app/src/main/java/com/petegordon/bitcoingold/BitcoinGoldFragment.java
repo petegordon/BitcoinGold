@@ -1,6 +1,7 @@
 package com.petegordon.bitcoingold;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -118,6 +119,10 @@ public class BitcoinGoldFragment extends Fragment implements LoaderManager.Loade
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE && getResources().getBoolean(R.bool.isTablet)){
+            //Dont add the Share option.
+            return;
+        }
         // Inflate the menu; this adds items to the action bar if it is present.
         inflater.inflate(R.menu.detailfragment, menu);
 
@@ -149,7 +154,7 @@ public class BitcoinGoldFragment extends Fragment implements LoaderManager.Loade
         );
 
         if(todayCursor.moveToFirst()) {
-            String priceRatio = todayCursor.getString(BitcoinGoldContract.BitcoinGoldEntry.COL_PRICE_RATIO);
+            String priceRatio = Utility.getFormattedCurrencyValue(todayCursor.getDouble(BitcoinGoldContract.BitcoinGoldEntry.COL_PRICE_RATIO));
             String priceBitcoin = Utility.getFormattedCurrencyValue(todayCursor.getDouble(BitcoinGoldContract.BitcoinGoldEntry.COL_BITCOIN_PRICE));
             String priceGold = Utility.getFormattedCurrencyValue(todayCursor.getDouble(BitcoinGoldContract.BitcoinGoldEntry.COL_GOLD_PRICE));
             String priceDate = Utility.getFormattedMonthDay(getActivity(), todayCursor.getString(BitcoinGoldContract.BitcoinGoldEntry.COL_DATE));

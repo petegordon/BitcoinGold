@@ -41,7 +41,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -83,7 +86,7 @@ public class BitcoinGoldSyncAdapter extends AbstractThreadedSyncAdapter {
         //get weigted price at position 7 of the data
         final String DATA = "data";
         final String UPDATED_AT = "updated_at";
-        final int WEIGHTED_24H_AVERAGE = 7;
+        final int WEIGHTED_24H_AVERAGE = 1;
         final int GOLD_AM_PRICE = 1;
         final int GOLD_PM_PRICE = 2;
         final int DATETEXT = 0;
@@ -94,106 +97,170 @@ public class BitcoinGoldSyncAdapter extends AbstractThreadedSyncAdapter {
             String bitcoinUpdatedAt = bitcoinJson.getString(UPDATED_AT);
             String goldUpdatedAt = goldJson.getString(UPDATED_AT);
             JSONArray bitcoinDayPriceData = bitcoinJson.getJSONArray(DATA);
+            int bitcoinDays = bitcoinDayPriceData.length();
+
             JSONArray goldDayPriceData = goldJson.getJSONArray(DATA);
+            int goldDays = goldDayPriceData.length();
 
 
             Vector<ContentValues> cVVector = new Vector<ContentValues>(bitcoinDayPriceData.length());
 
+
+            Hashtable<String, List<JSONArray>> dateToBitcoinGold = new Hashtable<String, List<JSONArray>>();
+
             int dayOffset = 0;
 
-            for(int i=0; i<BitcoinGoldContract.NUMBER_OF_DAYS; i++){
 
-                double bitcoinTodayPrice = bitcoinDayPriceData.getJSONArray(i).getDouble(WEIGHTED_24H_AVERAGE);
-                double bitcoinYesterdayPrice = bitcoinDayPriceData.getJSONArray(i+1).getDouble(WEIGHTED_24H_AVERAGE);
-                double bitcoinPercentChange = (bitcoinTodayPrice-bitcoinYesterdayPrice)/bitcoinYesterdayPrice;
-
-                /**
-                 * The Gold Day data is in order of most recent to the oldest.
-                 * Current Day is at position 0
-                 * Weekends do not have data so they must be skipped with the offset to find the
-                 * date equal to the bitcoin date.
-                 *
-                 */
-                double goldTodayAMPrice;
-                double goldTodayPMPrice;
-                Double goldTodayAveragePrice = null;
-                Double goldPercentChange = null;
-
-                String returnedBitcoinDateString = bitcoinDayPriceData.getJSONArray(i).getString(DATETEXT);
-                String returnedGoldDateString = goldDayPriceData.getJSONArray(i-dayOffset).getString(DATETEXT);
-                if(returnedGoldDateString.equals(returnedBitcoinDateString)) {
-
-                    int indexGoldToday = i-dayOffset;
-                    int indexGoldYesterday = indexGoldToday + 1;
-
-                    goldTodayAMPrice = goldDayPriceData.getJSONArray(indexGoldToday).getDouble(GOLD_AM_PRICE);
-                    if(goldDayPriceData.getJSONArray(indexGoldToday).isNull(GOLD_PM_PRICE)) {
-                        goldTodayPMPrice = goldTodayAMPrice;
-                    }else{
-                        goldTodayPMPrice = goldDayPriceData.getJSONArray(indexGoldToday).getDouble(GOLD_PM_PRICE);
-                    }
+            /*
+            try{
 
 
-                    goldTodayAveragePrice = ((goldTodayAMPrice + goldTodayPMPrice) / 2);
+            int bitcoinOffset = 0;
+            int goldOffset = 0;
+            int i=0;
 
-                    if(indexGoldYesterday < goldDayPriceData.length()) {
-                        double goldYesterdayAMPrice = goldDayPriceData.getJSONArray(indexGoldYesterday).getDouble(GOLD_AM_PRICE);
-                        double goldYesterdayPMPrice;
-                        if(goldDayPriceData.getJSONArray(indexGoldYesterday).isNull(GOLD_PM_PRICE)){
-                            goldYesterdayPMPrice = goldYesterdayAMPrice;
-                        } else {
-                            goldYesterdayPMPrice = goldDayPriceData.getJSONArray(indexGoldYesterday).getDouble(GOLD_PM_PRICE);
-                        }
-
-                        double goldYesterdayAveragePrice = ((goldYesterdayAMPrice + goldYesterdayPMPrice) / 2);
-                        goldPercentChange = (goldTodayAveragePrice - goldYesterdayAveragePrice) / goldYesterdayAveragePrice;
-                    }
-                }else {
-                    int indexGoldTomorrow = i - dayOffset - 1;
-                    if(indexGoldTomorrow < 0){
-                        //The first date doesn't have a Gold value; just use the first Gold Value
-                        indexGoldTomorrow = 0;
-                    }
-                    goldTodayAMPrice = goldDayPriceData.getJSONArray(indexGoldTomorrow).getDouble(GOLD_AM_PRICE);
-                    if(goldDayPriceData.getJSONArray(indexGoldTomorrow).isNull(GOLD_PM_PRICE)) {
-                        goldTodayPMPrice = goldTodayAMPrice;
-                    }else{
-                        goldTodayPMPrice = goldDayPriceData.getJSONArray(indexGoldTomorrow).getDouble(GOLD_PM_PRICE);
-                    }
-                    goldTodayAveragePrice = ((goldTodayAMPrice + goldTodayPMPrice) / 2);
-                    dayOffset++;
-                }
-
-                double priceRatio = goldTodayAveragePrice/bitcoinTodayPrice;
-                priceRatio = Math.round(priceRatio * 100.0) / 100.0;
-
-                ContentValues bitcoinGoldDayPrice = new ContentValues();
+            while(dateToBitcoinGold.size() < BitcoinGoldContract.NUMBER_OF_DAYS) {
+                JSONArray bitcoinJSONForDay = bitcoinDayPriceData.getJSONArray(i+bitcoinOffset);
+                JSONArray goldJSONForDay = goldDayPriceData.getJSONArray(i+goldOffset);
+                String bitcoinDateString = bitcoinDayPriceData.getJSONArray(i+bitcoinOffset).getString(DATETEXT);
+                String goldDateString = goldDayPriceData.getJSONArray(i+goldOffset).getString(DATETEXT);
 
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                Date bitcoinDate = dateFormat.parse(bitcoinDateString);
+                Date goldDate = dateFormat.parse(goldDateString);
 
-                try {
-                    Date returnedDate = dateFormat.parse(returnedBitcoinDateString);
-                    String recordedDateString = new SimpleDateFormat(BitcoinGoldContract.DATE_FORMAT).format(returnedDate);
-                    bitcoinGoldDayPrice.put(BitcoinGoldContract.BitcoinGoldEntry.COLUMN_DATETEXT, recordedDateString);
-                    bitcoinGoldDayPrice.put(BitcoinGoldContract.BitcoinGoldEntry.COLUMN_BITCOIN_PRICE, bitcoinDayPriceData.getJSONArray(i).getDouble(WEIGHTED_24H_AVERAGE));
-                    bitcoinGoldDayPrice.put(BitcoinGoldContract.BitcoinGoldEntry.COLUMN_BITCOIN_PERCENT_CHANGE, bitcoinPercentChange);
-                    bitcoinGoldDayPrice.put(BitcoinGoldContract.BitcoinGoldEntry.COLUMN_BITCOIN_DATETIME, bitcoinUpdatedAt);
-                    bitcoinGoldDayPrice.put(BitcoinGoldContract.BitcoinGoldEntry.COLUMN_GOLD_PRICE, goldTodayAveragePrice);
-                    bitcoinGoldDayPrice.put(BitcoinGoldContract.BitcoinGoldEntry.COLUMN_GOLD_PERCENT_CHANGE, goldPercentChange);
-                    bitcoinGoldDayPrice.put(BitcoinGoldContract.BitcoinGoldEntry.COLUMN_GOLD_DATETIME, goldUpdatedAt);
-                    bitcoinGoldDayPrice.put(BitcoinGoldContract.BitcoinGoldEntry.COLUMN_PRICE_RATIO, priceRatio);
 
-                    cVVector.add(bitcoinGoldDayPrice);
-                }catch(ParseException ex){
-                    ex.printStackTrace();
+                if(bitcoinDateString.equals(goldDateString)){
+                    List<JSONArray> bitcoinGold = new ArrayList<JSONArray>();
+                    bitcoinGold.add(bitcoinJSONForDay);
+                    bitcoinGold.add(goldJSONForDay);
+                    dateToBitcoinGold.put(goldDateString, bitcoinGold);
+                } else {
+                    if(goldDate.after(bitcoinDate)){
+                        bitcoinOffset++;
+                        goldDate.compareTo(bitcoinDate)
+                        //subtract a day to the Gold Date until they are equal
+                    }
+
+                }
+
+                i++;
+            }
+
+            }catch(ParseException ex){
+                ex.printStackTrace();
+            }
+
+            */
+
+            try {
+
+
+                for (int i = 0; i < BitcoinGoldContract.NUMBER_OF_DAYS; i++) {
+
+                    double bitcoinTodayPrice = bitcoinDayPriceData.getJSONArray(i).getDouble(WEIGHTED_24H_AVERAGE);
+                    double bitcoinYesterdayPrice = bitcoinDayPriceData.getJSONArray(i + 1).getDouble(WEIGHTED_24H_AVERAGE);
+                    double bitcoinPercentChange = (bitcoinTodayPrice - bitcoinYesterdayPrice) / bitcoinYesterdayPrice;
+
+                    /**
+                     * The Gold Day data is in order of most recent to the oldest.
+                     * Current Day is at position 0
+                     * Weekends do not have data so they must be skipped with the offset to find the
+                     * date equal to the bitcoin date.
+                     *
+                     */
+                    double goldTodayAMPrice;
+                    double goldTodayPMPrice;
+                    Double goldTodayAveragePrice = null;
+                    Double goldPercentChange = null;
+
+                    String returnedBitcoinDateString = bitcoinDayPriceData.getJSONArray(i).getString(DATETEXT);
+                    String returnedGoldDateString = goldDayPriceData.getJSONArray(i - dayOffset).getString(DATETEXT);
+
+
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                    Date bitcoinDate = dateFormat.parse(returnedBitcoinDateString);
+                    Date goldDate = dateFormat.parse(returnedGoldDateString);
+
+                    if (returnedGoldDateString.equals(returnedBitcoinDateString)) {
+
+                        int indexGoldToday = i - dayOffset;
+                        int indexGoldYesterday = indexGoldToday + 1;
+
+                        goldTodayAMPrice = goldDayPriceData.getJSONArray(indexGoldToday).getDouble(GOLD_AM_PRICE);
+                        if (goldDayPriceData.getJSONArray(indexGoldToday).isNull(GOLD_PM_PRICE)) {
+                            goldTodayPMPrice = goldTodayAMPrice;
+                        } else {
+                            goldTodayPMPrice = goldDayPriceData.getJSONArray(indexGoldToday).getDouble(GOLD_PM_PRICE);
+                        }
+
+
+                        goldTodayAveragePrice = ((goldTodayAMPrice + goldTodayPMPrice) / 2);
+
+                        if (indexGoldYesterday < goldDayPriceData.length()) {
+                            double goldYesterdayAMPrice = goldDayPriceData.getJSONArray(indexGoldYesterday).getDouble(GOLD_AM_PRICE);
+                            double goldYesterdayPMPrice;
+                            if (goldDayPriceData.getJSONArray(indexGoldYesterday).isNull(GOLD_PM_PRICE)) {
+                                goldYesterdayPMPrice = goldYesterdayAMPrice;
+                            } else {
+                                goldYesterdayPMPrice = goldDayPriceData.getJSONArray(indexGoldYesterday).getDouble(GOLD_PM_PRICE);
+                            }
+
+                            double goldYesterdayAveragePrice = ((goldYesterdayAMPrice + goldYesterdayPMPrice) / 2);
+                            goldPercentChange = (goldTodayAveragePrice - goldYesterdayAveragePrice) / goldYesterdayAveragePrice;
+                        }
+                    } else {
+                        int indexGoldTomorrow = i - dayOffset - 1;
+                        if (indexGoldTomorrow < 0) {
+                            //The first date doesn't have a Gold value; just use the first Gold Value
+                            indexGoldTomorrow = 0;
+                        }
+                        goldTodayAMPrice = goldDayPriceData.getJSONArray(indexGoldTomorrow).getDouble(GOLD_AM_PRICE);
+                        if (goldDayPriceData.getJSONArray(indexGoldTomorrow).isNull(GOLD_PM_PRICE)) {
+                            goldTodayPMPrice = goldTodayAMPrice;
+                        } else {
+                            goldTodayPMPrice = goldDayPriceData.getJSONArray(indexGoldTomorrow).getDouble(GOLD_PM_PRICE);
+                        }
+                        goldTodayAveragePrice = ((goldTodayAMPrice + goldTodayPMPrice) / 2);
+
+                        if (goldDate.after(bitcoinDate)) {
+                            //dont change the offset.
+                        } else {
+                            dayOffset++;
+                        }
+                    }
+
+                    double priceRatio = goldTodayAveragePrice / bitcoinTodayPrice;
+                    priceRatio = Math.round(priceRatio * 100.00) / 100.00;
+
+                    ContentValues bitcoinGoldDayPrice = new ContentValues();
+
+                    //SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+                    try {
+                        Date returnedDate = dateFormat.parse(returnedBitcoinDateString);
+                        String recordedDateString = new SimpleDateFormat(BitcoinGoldContract.DATE_FORMAT).format(returnedDate);
+                        bitcoinGoldDayPrice.put(BitcoinGoldContract.BitcoinGoldEntry.COLUMN_DATETEXT, recordedDateString);
+                        bitcoinGoldDayPrice.put(BitcoinGoldContract.BitcoinGoldEntry.COLUMN_BITCOIN_PRICE, bitcoinDayPriceData.getJSONArray(i).getDouble(WEIGHTED_24H_AVERAGE));
+                        bitcoinGoldDayPrice.put(BitcoinGoldContract.BitcoinGoldEntry.COLUMN_BITCOIN_PERCENT_CHANGE, bitcoinPercentChange);
+                        bitcoinGoldDayPrice.put(BitcoinGoldContract.BitcoinGoldEntry.COLUMN_BITCOIN_DATETIME, bitcoinUpdatedAt);
+                        bitcoinGoldDayPrice.put(BitcoinGoldContract.BitcoinGoldEntry.COLUMN_GOLD_PRICE, goldTodayAveragePrice);
+                        bitcoinGoldDayPrice.put(BitcoinGoldContract.BitcoinGoldEntry.COLUMN_GOLD_PERCENT_CHANGE, goldPercentChange);
+                        bitcoinGoldDayPrice.put(BitcoinGoldContract.BitcoinGoldEntry.COLUMN_GOLD_DATETIME, goldUpdatedAt);
+                        bitcoinGoldDayPrice.put(BitcoinGoldContract.BitcoinGoldEntry.COLUMN_PRICE_RATIO, priceRatio);
+
+                        cVVector.add(bitcoinGoldDayPrice);
+                    } catch (ParseException ex) {
+                        ex.printStackTrace();
+                    }
+
+
                 }
 
 
-
-
+            }catch(ParseException ex){
+                ex.printStackTrace();
             }
-
-
             if ( cVVector.size() > 0 ) {
                 ContentValues[] cvArray = new ContentValues[cVVector.size()];
                 cVVector.toArray(cvArray);
@@ -224,6 +291,7 @@ public class BitcoinGoldSyncAdapter extends AbstractThreadedSyncAdapter {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             // we can enable inexact timers in our periodic sync
             SyncRequest request = new SyncRequest.Builder().
+                    setExtras(new Bundle()).
                     syncPeriodic(syncInterval, flexTime).
                     setSyncAdapter(account, authority).build();
             ContentResolver.requestSync(request);
@@ -400,7 +468,8 @@ public class BitcoinGoldSyncAdapter extends AbstractThreadedSyncAdapter {
         try {
             // Construct the URL for the quandl.com Bitcoin query
             final String BASE_URL =
-                    "http://www.quandl.com/api/v1/datasets/BITCOIN/BITSTAMPUSD?";
+                    "https://www.quandl.com/api/v1/datasets/BAVERAGE/USD.json?";
+                    //"http://www.quandl.com/api/v1/datasets/BITCOIN/BITSTAMPUSD?";
             final String QUERY_PARAM_STARTDATE = "trim_start";  //date format is YYYY-MM-dd
 
 

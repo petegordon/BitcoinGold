@@ -54,7 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
             android:gravity="left"
-            android:src="@drawable/uparrow" />
+             />
         <TextView
             android:id="@+id/list_item_bitcoin_datetime_textview"
             android:layout_width="match_parent"
@@ -85,7 +85,7 @@
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
             android:gravity="right"
-            android:src="@drawable/downarrow" />
+            />
         <TextView
             android:id="@+id/list_item_gold_datetime_textview"
             android:layout_width="match_parent"
